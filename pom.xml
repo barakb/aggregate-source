@@ -9,9 +9,9 @@
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>concurrent-cache</name>
+    <name>aggregate-source</name>
 
-    <description>Aggraget source from project dependecies</description>
+    <description>A maven plugin that aggregate source from project dependecies, can be used to create aggregate javadoc</description>
     <url>https://github.com/barakb/aggregate-source</url>
 
     <properties>
