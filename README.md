@@ -5,13 +5,17 @@
 ####Use with Maven dependency.
 
 ```xml
-    <dependency>
-      <groupId>com.github.barakb</groupId>
-      <artifactId>aggregate-source</artifactId>
-      <version>1.2</version>
-    </dependency>
-    
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.mycompany.app</groupId>
+                <artifactId>foo</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 ```
+
 
 ```xml
     <plugin>
@@ -38,6 +42,7 @@
                 <include>*:xap-rest-spring</include>
                 <include>*:xap-common</include>
                 <include>*:xap-datagrid</include>
+                <include>*:xap-near-cache</include>
             </includes>
         </configuration>
     </plugin>
