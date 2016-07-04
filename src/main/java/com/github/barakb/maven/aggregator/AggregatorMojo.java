@@ -19,8 +19,8 @@ import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.FileFilter;
+import java.util.*;
 
 
 /**
@@ -48,6 +48,7 @@ public class AggregatorMojo extends AbstractMojo {
     @Parameter
     private List<String> excludes;
 
+
     @SuppressWarnings("deprecation")
     @Component
     private ArtifactFactory factory;
@@ -61,10 +62,16 @@ public class AggregatorMojo extends AbstractMojo {
     @Parameter(defaultValue = "javadoc-sources")
     private String toDir;
 
+    @Parameter
+    private String localArtifactsRoot;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         List<Artifact> artifacts = filter();
+        //noinspection Convert2Diamond
         List<Artifact> sources = new ArrayList<Artifact>();
+        //noinspection Convert2Diamond
+        List<Artifact> failed = new ArrayList<Artifact>();
         for (Artifact filtered : artifacts) {
             try {
                 //noinspection deprecation
@@ -73,10 +80,49 @@ public class AggregatorMojo extends AbstractMojo {
                 sources.add(artifact);
             } catch (ArtifactResolverException e) {
                 getLog().warn("Failed to resolve source artifact " + filtered);
+                failed.add(filtered);
             }
         }
 
         File outDir = new File(project.getModel().getBuild().getOutputDirectory());
+        List<File> localSources = new ArrayList<>();
+        if(!failed.isEmpty()) {
+            Set<File> targets = (localArtifactsRoot != null) ? findAllTargets(localArtifactsRoot) : Collections.emptySet();
+            for (Artifact artifact : failed) {
+                String artifactFileName = artifact.getArtifactId() + "-" + artifact.getVersion() +  "-" + artifact.getClassifier() + "." + artifact.getType();
+                getLog().info("searching for missing file " + artifactFileName);
+                for (File target : targets) {
+                    File artifactFile = new File(target, artifactFileName);
+                    if(artifactFile.exists()){
+                        getLog().info("found missing artifact  : " + artifactFile.getAbsolutePath());
+                        localSources.add(artifactFile);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(localSources.size() != failed.size()){
+            throw new MojoExecutionException("Failed to load some of the artifacts, sources: " + sources + ", failed :" + failed);
+        }
+        for (File source : localSources) {
+//            getLog().info("source jar to copy  " + source.getFile().getAbsolutePath());
+            final File d = new File(outDir, toDir);
+            if (!d.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                d.mkdirs();
+            }
+            final UnArchiver unArchiver;
+            try {
+                unArchiver = archiverManager.getUnArchiver("jar");
+                unArchiver.setDestDirectory(d);
+                unArchiver.setSourceFile(source);
+                getLog().info("Unarchive " + source.getAbsolutePath() + " to " + d.getAbsolutePath());
+                unArchiver.extract();
+            } catch (NoSuchArchiverException e) {
+                throw new MojoExecutionException(e.getMessage(), e);
+            }
+        }
 
         for (Artifact source : sources) {
 //            getLog().info("source jar to copy  " + source.getFile().getAbsolutePath());
@@ -94,6 +140,29 @@ public class AggregatorMojo extends AbstractMojo {
                 unArchiver.extract();
             } catch (NoSuchArchiverException e) {
                 throw new MojoExecutionException(e.getMessage(), e);
+            }
+        }
+    }
+
+    private Set<File> findAllTargets(String root) {
+        Set<File>  res = new HashSet<>();
+        findAllTargets(new File(root), res);
+        return res;
+    }
+
+    private void findAllTargets(File root, final Set<File> res) {
+        if(root.isDirectory()){
+            if(root.getName().equalsIgnoreCase("target")){
+                res.add(root);
+            }else{
+                //noinspection Convert2Lambda,ResultOfMethodCallIgnored
+                root.listFiles(new FileFilter() {
+                    @Override
+                    public boolean accept(File pathname) {
+                        findAllTargets(pathname, res);
+                        return false;
+                    }
+                });
             }
         }
     }
@@ -121,6 +190,7 @@ public class AggregatorMojo extends AbstractMojo {
 
             filter.add(excludeFilter);
         }
+        //noinspection Convert2Diamond
         List<Artifact> res = new ArrayList<Artifact>();
         getLog().info("scanning artifacts");
         for (Artifact atf : project.getArtifacts()) {
@@ -147,6 +217,7 @@ public class AggregatorMojo extends AbstractMojo {
 
     private java.util.List<String> getExcludes() {
         if (this.excludes == null) {
+            //noinspection Convert2Diamond
             this.excludes = new java.util.ArrayList<String>();
         }
 
@@ -155,6 +226,7 @@ public class AggregatorMojo extends AbstractMojo {
 
     private java.util.List<String> getIncludes() {
         if (this.includes == null) {
+            //noinspection Convert2Diamond
             this.includes = new java.util.ArrayList<String>();
         }
 
