@@ -1,4 +1,4 @@
-![Build Status](https://travis-ci.org/barakb/aggregate-source.svg?branch=master)](https://travis-ci.org/barakb/aggregate-source)
+![Build Status](https://travis-ci.org/barakb/aggregate-source.svg?branch=master)(https://travis-ci.org/barakb/aggregate-source)
 
 ##aggregate-source
 
