@@ -32,6 +32,7 @@
             </execution>
         </executions>
         <configuration>
+            <localArtifactsRoot>/home/barakbo/dev/github/xap</localArtifactsRoot>
             <includes>
                 <include>*:xap-map</include>
                 <include>*:xap-map-spring</include>
