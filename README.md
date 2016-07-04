@@ -5,17 +5,16 @@
 ####Use with Maven dependency.
 
 ```xml
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.mycompany.app</groupId>
-                <artifactId>foo</artifactId>
-                <version>1.0-SNAPSHOT</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+   <pluginRepositories>
+        <pluginRepository>
+            <id>sonatype</id>
+            <url>https://oss.sonatype.org/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>```
 ```
-
 
 ```xml
     <plugin>
